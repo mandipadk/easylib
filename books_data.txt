@@ -1,0 +1,9 @@
+The Alchemist,Paulo Coelho,9780061122415,1
+The Lord of the Rings,J.R.R. Tolkien,9780547928227,1
+Pride and Prejudice,Jane Austen,9780141439518,0
+And Then There Were None,Agatha Christie,9780062073488,0
+The Great Gatsby,F. Scott Fitzgerald,9780743273565,1
+To Kill a Mockingbird,Harper Lee,9780446310789,0
+1984,George Orwell,9780451524935,0
+The Hitchhiker's Guide to the Galaxy,Douglas Adams,9780345391803,1
+Atomic Habit,James Clear,33700,1

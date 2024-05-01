@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -32,11 +33,14 @@ void searchBooks();
 void displayAllBooks();
 void addMember();
 void displayAllMembers();
-void saveDataToFile();
-void loadDataFromFile();
+void saveBooksToFile();
+void saveMembersToFile();
+void loadBooksFromFile();
+void loadMembersFromFile();
 
 int main() {
-    loadDataFromFile(); // Load data on startup
+    loadBooksFromFile(); // Load book data on startup
+    loadMembersFromFile(); // Load member data on startup
 
     int choice;
 
@@ -62,16 +66,14 @@ int main() {
             case 5: displayAllBooks(); break;
             case 6: addMember(); break;
             case 7: displayAllMembers(); break;
-            case 8: saveDataToFile(); break;
+            case 8: saveBooksToFile(); saveMembersToFile(); break;
             case 0: cout << "Exiting...\n"; break;
             default: cout << "Invalid choice!\n";
         }
     } while (choice != 0);
 
-    // saveDataToFile(); // Save data on exit
     return 0;
 }
-
 
 // Function definitions
 void addBook() {
@@ -97,24 +99,24 @@ void issueBook() {
     cin >> ISBN;
 
     // Find the book by ISBN
-    for (Book& book : books) {
-        if (book.ISBN == ISBN && book.available) {
+    for (size_t i = 0; i < books.size(); ++i) {
+        if (books[i].ISBN == ISBN && books[i].available) {
             foundBook = true;
             
             cout << "Enter Member ID: ";
             cin >> memberID;
 
             // Find the member by ID and add borrowed book ISBN
-            for (Member& member : members) {
-                if (member.memberID == memberID) {
-                    member.borrowedBooks.push_back(ISBN);
-                    book.available = false;  // Mark book as issued
-                    cout << "Book issued successfully to " << member.name << "." << endl;
+            for (size_t j = 0; j < members.size(); ++j) {
+                if (members[j].memberID == memberID) {
+                    members[j].borrowedBooks.push_back(ISBN);
+                    books[i].available = false;  // Mark book as issued
+                    cout << "Book issued successfully to " << members[j].name << "." << endl;
                     return;
                 }
             }
             cout << "Invalid Member ID!\n";
-            book.available = true; // Revert availability change
+            books[i].available = true; // Revert availability change
             return;
         }
     }
@@ -133,20 +135,20 @@ void returnBook() {
     cin >> ISBN;
 
     // Find the book by ISBN
-    for (Book& book : books) {
-        if (book.ISBN == ISBN) {
+    for (size_t i = 0; i < books.size(); ++i) {
+        if (books[i].ISBN == ISBN) {
             foundBook = true;
-            book.available = true;   // Mark book as available
+            books[i].available = true;   // Mark book as available
 
             cout << "Enter Member ID: ";
             cin >> memberID;
 
             // Find the member by ID and remove borrowed book ISBN
-            for (Member& member : members) {
-                if (member.memberID == memberID) {
-                    auto it = find(member.borrowedBooks.begin(), member.borrowedBooks.end(), ISBN);
-                    if (it != member.borrowedBooks.end()) {
-                        member.borrowedBooks.erase(it);
+            for (size_t j = 0; j < members.size(); ++j) {
+                if (members[j].memberID == memberID) {
+                    vector<string>::iterator it = find(members[j].borrowedBooks.begin(), members[j].borrowedBooks.end(), ISBN);
+                    if (it != members[j].borrowedBooks.end()) {
+                        members[j].borrowedBooks.erase(it);
                         cout << "Book returned successfully!\n";
                         return;
                     } else {
@@ -181,7 +183,8 @@ void searchBooks() {
     bool found = false;
     switch (choice) {
         case 1:
-            for (const Book& book : books) {
+            for (size_t i = 0; i < books.size(); ++i) {
+                const Book& book = books[i];
                 if (book.title.find(searchTerm) != string::npos) {
                     cout << book.title << " - " << book.author << " (ISBN: " << book.ISBN << ")" << endl;
                     found = true;
@@ -189,7 +192,8 @@ void searchBooks() {
             }
             break;
         case 2: // Search by Author
-            for (const Book& book : books) {
+            for (size_t i = 0; i < books.size(); ++i) {
+                const Book& book = books[i];
                 if (book.author.find(searchTerm) != string::npos) {
                     cout << "Title: " << book.title << endl;
                     cout << "Author: " << book.author << endl;
@@ -201,7 +205,8 @@ void searchBooks() {
             }
             break;
         case 3: // Search by ISBN
-            for (const Book& book : books) {
+            for (size_t i = 0; i < books.size(); ++i) {
+                const Book& book = books[i];
                 if (book.ISBN == searchTerm) {
                     cout << "Title: " << book.title << endl;
                     cout << "Author: " << book.author << endl;
@@ -229,7 +234,8 @@ void displayAllBooks() {
     cout << "\n------------------------" << endl;
     cout << "All Books in the library:" << endl;
     cout << "------------------------" << endl;
-    for (const Book& book : books) {
+    for (size_t i = 0; i < books.size(); ++i) {
+        const Book& book = books[i];
         cout << "Title: " << book.title << endl;
         cout << "Author: " << book.author << endl;
         cout << "ISBN: " << book.ISBN << endl;
@@ -254,40 +260,48 @@ void displayAllMembers() {
         cout << "No members in the library.\n";
     } else {
         cout << "\nAll Members:\n";
-        for (const Member& member : members) {
-            cout << "Name: " << member.name << endl;
-            cout << "Member ID: " << member.memberID << endl;
+        for (size_t i = 0; i < members.size(); ++i) {
+            cout << "Name: " << members[i].name << endl;
+            cout << "Member ID: " << members[i].memberID << endl;
             cout << "-------\n";
         }
     }
 }
 
-// Functions to save data to a file
-void saveDataToFile() {
-    ofstream file("library_data.txt");
+// Functions to save data to files
+void saveBooksToFile() {
+    ofstream file("books_data.txt");
     if (file.is_open()) {
-        // Save Books
-        for (const Book& book : books) {
-            file << book.title << "," << book.author << "," << book.ISBN << "," << book.available << endl;
+        for (size_t i = 0; i < books.size(); ++i) {
+            file << books[i].title << "," << books[i].author << "," << books[i].ISBN << "," << books[i].available << endl;
         }
-        // Save Members
-        for (const Member& member : members) {
-            file << member.name << "," << member.memberID;
-            for (const string& isbn : member.borrowedBooks) {
-                file << "," << isbn;
+        file.close();
+        cout << "Book data saved successfully!\n";
+    } else {
+        cout << "Failed to open book data file!\n";
+    }
+}
+
+void saveMembersToFile() {
+    ofstream file("members_data.txt");
+    if (file.is_open()) {
+        for (size_t i = 0; i < members.size(); ++i) {
+            file << members[i].name << "," << members[i].memberID;
+            for (size_t j = 0; j < members[i].borrowedBooks.size(); ++j) {
+                file << "," << members[i].borrowedBooks[j];
             }
             file << endl;
         }
         file.close();
-        cout << "Data saved successfully!\n";
+        cout << "Member data saved successfully!\n";
     } else {
-        cout << "Failed to open file!\n";
+        cout << "Failed to open member data file!\n";
     }
 }
 
-// Function to load data from a file
-void loadDataFromFile() {
-    ifstream file("library_data.txt");
+// Functions to load data from files
+void loadBooksFromFile() {
+    ifstream file("books_data.txt");
     if (file.is_open()) {
         string line;
         while (getline(file, line)) {
@@ -303,27 +317,49 @@ void loadDataFromFile() {
             }
             data.push_back(line); // Add the last token
 
-            // Process the tokens based on whether it's book or member data
-            if (data.size() == 4) { // Book data
-                Book book;
-                book.title = data[0];
-                book.author = data[1];
-                book.ISBN = data[2]; // Store ISBN as string
-                book.available = (data[3] == "1") ? true : false;
-                books.push_back(book);      
-            } else { // Member data
-                Member member;
-                member.name = data[0];
-                member.memberID = stoi(data[1]);
-
-                for (size_t i = 2; i < data.size(); ++i) {
-                    member.borrowedBooks.push_back(data[i]);
-                }
-                members.push_back(member);
-            }
+            Book book;
+            book.title = data[0];
+            book.author = data[1];
+            book.ISBN = data[2]; // Store ISBN as string
+            book.available = (data[3] == "1") ? true : false;
+            books.push_back(book);
         }
         file.close();
+        cout << "Book data loaded successfully!\n";
     } else {
-        cout << "Failed to open file!\n";
+        cout << "No book data found.\n";
+    }
+}
+
+void loadMembersFromFile() {
+    ifstream file("members_data.txt");
+    if (file.is_open()) {
+        string line;
+        while (getline(file, line)) {
+            vector<string> data;
+            string token;
+            size_t pos = 0;
+
+            // Split the line (comma-separated data) into tokens
+            while ((pos = line.find(",")) != string::npos) {
+                token = line.substr(0, pos);
+                data.push_back(token);
+                line.erase(0, pos + 1);
+            }
+            data.push_back(line); // Add the last token
+
+            Member member;
+            member.name = data[0];
+            member.memberID = stoi(data[1]);
+
+            for (size_t i = 2; i < data.size(); ++i) {
+                member.borrowedBooks.push_back(data[i]);
+            }
+            members.push_back(member);
+        }
+        file.close();
+        cout << "Member data loaded successfully!\n";
+    } else {
+        cout << "No member data found.\n";
     }
 }
