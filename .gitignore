@@ -1,0 +1,6 @@
+.idea
+.vscode
+*.exe
+library_data.txt
+tempCodeRUnnerFile.cpp
+devmain.cpp
