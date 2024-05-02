@@ -150,7 +150,10 @@ void Library::searchBooks() {
     cout << "3. ISBN\n";
     cout << "Enter your choice: ";
     cin >> choice;
-
+    if (choice > 3 || choice < 1){
+        cout << "Invalid Choice. Please try again." << endl;
+    }
+    else{
     cin.ignore(); // Clear input buffer
     cout << "Enter search term: ";
     getline(cin, searchTerm);
@@ -202,9 +205,9 @@ void Library::searchBooks() {
         default:
             cout << "Invalid choice!\n";
     }
-
     if (!found) {
         cout << "No matching books found.\n";
+    }
     }
 }
 
